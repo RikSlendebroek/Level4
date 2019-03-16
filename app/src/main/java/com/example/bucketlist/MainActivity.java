@@ -1,12 +1,16 @@
 package com.example.bucketlist;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,9 +18,10 @@ import android.view.MenuItem;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements RecyclerView.OnItemTouchListener {
     private List<Bucket> buckets;
     private RecyclerView recyclerView;
+    private GestureDetector gestureDetector;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,8 +47,21 @@ public class MainActivity extends AppCompatActivity {
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         recyclerView.setLayoutManager(layoutManager);
 
+        recyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL));
+
         BucketAdapter adapter = new BucketAdapter(this, buckets);
         recyclerView.setAdapter(adapter);
+
+        //region GestureDetector
+        gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onSingleTapUp(MotionEvent e) {
+                return true;
+            }
+        });
+        //endregion
+
+        recyclerView.addOnItemTouchListener(this);
     }
 
     @Override
@@ -66,5 +84,25 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
+        View child = recyclerView.findChildViewUnder(motionEvent.getX(), motionEvent.getY());
+        int adapterPosition = recyclerView.getChildAdapterPosition(child);
+        if (child != null && gestureDetector.onTouchEvent(motionEvent)) {
+            //Click
+        }
+        return false;
+    }
+
+    @Override
+    public void onTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
+
+    }
+
+    @Override
+    public void onRequestDisallowInterceptTouchEvent(boolean b) {
+
     }
 }
