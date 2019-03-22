@@ -1,5 +1,6 @@
 package com.example.bucketlist;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -23,6 +24,13 @@ public class MainActivity extends AppCompatActivity implements RecyclerView.OnIt
     private RecyclerView recyclerView;
     private GestureDetector gestureDetector;
 
+    private BucketAdapter adapter;
+
+    //Constants used when calling the update activity
+    public static final String EXTRA_BUCKET= "bucket";
+    public static final int REQUESTCODE = 1234;
+    private int mModifyPosition;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,8 +42,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerView.OnIt
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Intent intent = new Intent(MainActivity.this, Add.class);
             }
         });
 
@@ -49,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerView.OnIt
 
         recyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL));
 
-        BucketAdapter adapter = new BucketAdapter(this, buckets);
+        adapter = new BucketAdapter(this, buckets);
         recyclerView.setAdapter(adapter);
 
         //region GestureDetector
@@ -103,6 +110,29 @@ public class MainActivity extends AppCompatActivity implements RecyclerView.OnIt
 
     @Override
     public void onRequestDisallowInterceptTouchEvent(boolean b) {
+
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUESTCODE) {
+            if (resultCode == RESULT_OK) {
+                Bucket addBucket = data.getParcelableExtra(MainActivity.EXTRA_BUCKET);
+                // New timestamp: timestamp of update
+                if (mModifyPosition == -1)
+                    buckets.add(addBucket);
+                updateUI();
+            }
+        }
+    }
+
+    private void updateUI() {
+        if (adapter == null) {
+            adapter = new BucketAdapter(this, buckets);
+            recyclerView.setAdapter(adapter);
+        } else {
+            adapter.notifyDataSetChanged();
+        }
 
     }
 }
