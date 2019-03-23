@@ -33,10 +33,19 @@ public class BucketAdapter extends RecyclerView.Adapter<BucketViewHolder> {
         // The holder argument is used to reference the views inside the viewHolder
         // Populate the views with the data from the list
         viewHolder.crossed.setText(bucket.getTitle());
+        viewHolder.descriptionTxt.setText(bucket.getDescription());
     }
 
     @Override
     public int getItemCount() {
         return buckets.size();
+    }
+
+    public void swapList (List<Bucket> newList) {
+        buckets = newList;
+        if (newList != null) {
+            // Force the RecyclerView to refresh
+            this.notifyDataSetChanged();
+        }
     }
 }

@@ -18,6 +18,8 @@ import android.view.MenuItem;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity implements RecyclerView.OnItemTouchListener {
     private List<Bucket> buckets;
@@ -25,9 +27,11 @@ public class MainActivity extends AppCompatActivity implements RecyclerView.OnIt
     private GestureDetector gestureDetector;
 
     private BucketAdapter adapter;
+    private BucketRoomDatabase db;
+    private Executor executor = Executors.newSingleThreadExecutor();
 
     //Constants used when calling the update activity
-    public static final String EXTRA_BUCKET= "bucket";
+    public static final String EXTRA_BUCKET = "bucket";
     public static final int REQUESTCODE = 1234;
     private int mModifyPosition;
 
@@ -43,12 +47,12 @@ public class MainActivity extends AppCompatActivity implements RecyclerView.OnIt
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, Add.class);
+                startActivityForResult(intent, REQUESTCODE);
             }
         });
 
+        db = BucketRoomDatabase.getDatabase(this);
         buckets = new ArrayList<>();
-        buckets.add(new Bucket("Test", "Google"));
-        buckets.add(new Bucket("Himalaya", "Vlo"));
 
         recyclerView = findViewById(R.id.recyclerView);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
@@ -69,6 +73,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerView.OnIt
         //endregion
 
         recyclerView.addOnItemTouchListener(this);
+        getAllBuckets();
     }
 
     @Override
@@ -118,20 +123,68 @@ public class MainActivity extends AppCompatActivity implements RecyclerView.OnIt
         if (requestCode == REQUESTCODE) {
             if (resultCode == RESULT_OK) {
                 Bucket addBucket = data.getParcelableExtra(MainActivity.EXTRA_BUCKET);
-                // New timestamp: timestamp of update
-                if (mModifyPosition == -1)
-                    buckets.add(addBucket);
+                insertBucket(addBucket);
                 updateUI();
             }
         }
     }
+
+    //region CRUD
+    private void getAllBuckets() {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                buckets = db.bucketDao().getAllBuckets();
+                // In a background thread the user interface cannot be updated from this thread.
+                // This method will perform statements on the main thread again.
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateUI();
+                    }
+                });
+            }
+        });
+    }
+
+    private void insertBucket(final Bucket bucket) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                db.bucketDao().insertBucket(bucket);
+                getAllBuckets(); // Because the Room database has been modified we need to get the new list of reminders.
+            }
+        });
+    }
+
+    private void updateBucket(final Bucket bucket) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                db.bucketDao().updateBucket(bucket);
+                getAllBuckets(); // Because the Room database has been modified we need to get the new list of reminders.
+            }
+        });
+    }
+
+    private void deleteBucket(final Bucket bucket) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                db.bucketDao().deleteBucket(bucket);
+                getAllBuckets(); // Because the Room database has been modified we need to get the new list of reminders.
+            }
+        });
+    }
+    //endregion
+
 
     private void updateUI() {
         if (adapter == null) {
             adapter = new BucketAdapter(this, buckets);
             recyclerView.setAdapter(adapter);
         } else {
-            adapter.notifyDataSetChanged();
+            adapter.swapList(buckets);
         }
 
     }

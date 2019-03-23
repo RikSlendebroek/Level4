@@ -1,9 +1,13 @@
 package com.example.bucketlist;
 
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.PrimaryKey;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+@Entity(tableName = "bucket")
 public class Bucket implements Parcelable {
+    @PrimaryKey(autoGenerate = true)
     private long id;
     private String title;
     private String description;
@@ -51,6 +55,7 @@ public class Bucket implements Parcelable {
     }
     //endregion
 
+    //region Parcelable
     @Override
     public int describeContents() {
         return 0;
@@ -71,7 +76,7 @@ public class Bucket implements Parcelable {
         this.crossed = in.readByte() != 0;
     }
 
-    public static final Parcelable.Creator<Bucket> CREATOR = new Parcelable.Creator<Bucket>() {
+    public static final Creator<Bucket> CREATOR = new Creator<Bucket>() {
         @Override
         public Bucket createFromParcel(Parcel source) {
             return new Bucket(source);
@@ -82,4 +87,5 @@ public class Bucket implements Parcelable {
             return new Bucket[size];
         }
     };
+    //endregion
 }
