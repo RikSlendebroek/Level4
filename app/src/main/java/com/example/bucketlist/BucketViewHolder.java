@@ -10,11 +10,28 @@ public class BucketViewHolder extends RecyclerView.ViewHolder {
     public CheckBox crossed;
     public View view;
     public TextView descriptionTxt;
+    public Bucket bucket;
 
-    public BucketViewHolder(@NonNull View itemView) {
-        super(itemView);
+    public BucketViewHolder(@NonNull View itemView, final Bucket bucket, final IBucketClickListener listener) {
+        super( itemView );
         view = itemView;
         crossed = itemView.findViewById( R.id.checkBox );
-        descriptionTxt = itemView.findViewById( R.id.descriptionTxt );
+        descriptionTxt = itemView.findViewById( R.id.descriptionView );
+this.bucket = bucket;
+
+        itemView.setOnLongClickListener( new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                listener.onLongClick( BucketViewHolder.this.bucket );
+                return false;
+            }
+        } );
+
+        crossed.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                listener.onCheck( BucketViewHolder.this.bucket );
+            }
+        } );
     }
 }

@@ -9,13 +9,16 @@ import android.view.ViewGroup;
 
 import java.util.List;
 
+
 public class BucketAdapter extends RecyclerView.Adapter<BucketViewHolder> {
     private List<Bucket> buckets;
     private Context context;
+    private IBucketClickListener bucketListener;
 
-    public BucketAdapter(Context context, List<Bucket> buckets) {
+    public BucketAdapter(Context context, List<Bucket> buckets, IBucketClickListener bucketListener) {
         this.buckets = buckets;
         this.context = context;
+        this.bucketListener = bucketListener;
     }
 
     @NonNull
@@ -23,7 +26,7 @@ public class BucketAdapter extends RecyclerView.Adapter<BucketViewHolder> {
     public BucketViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int i) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.bucket, parent, false);
 
-        return new BucketViewHolder(view);
+        return new BucketViewHolder(view, buckets.get( i ), bucketListener);
     }
 
     @Override

@@ -15,16 +15,16 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-public class MainActivity extends AppCompatActivity implements RecyclerView.OnItemTouchListener {
+public class MainActivity extends AppCompatActivity implements IBucketClickListener {
     private List<Bucket> buckets;
     private RecyclerView recyclerView;
-    private GestureDetector gestureDetector;
 
     private BucketAdapter adapter;
     private BucketRoomDatabase db;
@@ -60,19 +60,9 @@ public class MainActivity extends AppCompatActivity implements RecyclerView.OnIt
 
         recyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL));
 
-        adapter = new BucketAdapter(this, buckets);
+        adapter = new BucketAdapter(this, buckets, this);
         recyclerView.setAdapter(adapter);
 
-        //region GestureDetector
-        gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
-            @Override
-            public boolean onSingleTapUp(MotionEvent e) {
-                return true;
-            }
-        });
-        //endregion
-
-        recyclerView.addOnItemTouchListener(this);
         getAllBuckets();
     }
 
@@ -98,25 +88,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerView.OnIt
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
-        View child = recyclerView.findChildViewUnder(motionEvent.getX(), motionEvent.getY());
-        int adapterPosition = recyclerView.getChildAdapterPosition(child);
-        if (child != null && gestureDetector.onTouchEvent(motionEvent)) {
-            //Click
-        }
-        return false;
-    }
-
-    @Override
-    public void onTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
-
-    }
-
-    @Override
-    public void onRequestDisallowInterceptTouchEvent(boolean b) {
-
-    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -181,11 +152,22 @@ public class MainActivity extends AppCompatActivity implements RecyclerView.OnIt
 
     private void updateUI() {
         if (adapter == null) {
-            adapter = new BucketAdapter(this, buckets);
+            adapter = new BucketAdapter(this, buckets, this);
             recyclerView.setAdapter(adapter);
         } else {
             adapter.swapList(buckets);
         }
+
+    }
+
+    @Override
+    public void onLongClick(Bucket bucket) {
+
+        Toast.makeText(MainActivity.this, "Touchy?", Toast.LENGTH_SHORT);
+    }
+
+    @Override
+    public void onCheck(Bucket bucket) {
 
     }
 }
